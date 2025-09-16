@@ -1,4 +1,4 @@
-from math_algorithms import gcd, mod_inverse, mod_exp
+from math_algorithms import *
 
 
 def test_gcd():
@@ -10,3 +10,5 @@ def test_mod_inverse():
 
 def test_mod_exp():
     assert mod_exp(2,5,13)==6
+
+

@@ -1,19 +1,46 @@
 import random
 
+
 ###checks if n is truly a prime number###
-def is_prime(n):
+def is_prime(n, k=10):
+    ###Miller-Rabin primality test - much faster for large numbers###
     if n < 2:
         return False
-    for i in range(2, int(n**0.5)+1):
-        if n % i == 0:
-            return False
+    if n == 2 or n == 3:
+        return True
+    if n % 2 == 0:
+        return False
+
+    # Write n-1 as 2^r * d
+    r = 0
+    d = n - 1
+    while d % 2 == 0:
+        r += 1
+        d //= 2
+
+    # Witness loop
+    for _ in range(k):
+        a = random.randrange(2, n - 1)
+        x = pow(a, d, n)  # Use built-in pow for modular exponentiation
+
+        if x == 1 or x == n - 1:
+            continue
+
+        for _ in range(r - 1):
+            x = pow(x, 2, n)
+            if x == n - 1:
+                break
         else:
-            return True
+            return False
+    return True
 
 def generate_prime(bits):
-    ###generates a random prime number with 'bits' bits###
     while True:
+
         p = random.getrandbits(bits)
+
+        p |= (1 << bits-1) | 1  # Ensure it's odd and has correct bit length
+
         if is_prime(p):
             return p
 
@@ -38,10 +65,7 @@ def mod_inverse(e, phi):
 
 def mod_exp(base, exp, mod):
     ###finds (base ** exp) % mod using squaring###
-    result = 1
-    while exp > 0:
-        if exp % 2 ==1:
-            result = (result * base) % mod
-        exp >>= 1
-        base = (base * base) % mod
-    return result
+    return pow(base, exp, mod)
+
+
+
