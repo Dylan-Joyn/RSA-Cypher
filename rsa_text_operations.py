@@ -12,4 +12,4 @@ print("RSA keys have been generated.")
 activeInput = True
 while activeInput:
     #take in user input
-    activeInput = program_loop()
+    activeInput = program_loop(keys)
