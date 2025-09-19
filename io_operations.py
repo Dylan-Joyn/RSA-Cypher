@@ -99,7 +99,7 @@ def owner_of_keys(keys):
             case "1":
                 print("The following messages are abailable: ")
                 for i, msg in enumerate(encrypt_messages, start=0):
-                    print(f"{(i+1)}. {len(msg)}")
+                    print(f"{(i+1)}. (length = {len(msg)})")
                 select_em = int(input("Enter your choice: "))-1
                 encrypt_message = encrypt_messages[select_em]
                 decrypt_text(keys, encrypt_message)
