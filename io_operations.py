@@ -3,6 +3,7 @@ from rsa_keys import *
 
 # storage for signatures
 digital_signatures = []
+encrypt_messages = []
 
 def program_loop(keys):
     while True:
@@ -22,7 +23,6 @@ def program_loop(keys):
                 return False
             case _:
                 print("Please enter a valid option.")
-    return True
 
 
 def encrypt_text(keys):
@@ -47,17 +47,16 @@ def decrypt_text(keys, encrypted_message):
     print("Decrypted Message:", message_to_decrypt)
     return message_to_decrypt
 
-
 def public_user(keys):
     print("\nAs a public user, what would you like to do?")
     print("1. Send an encrypted message")
     print("2. Authenticate a digital signature")
     print("3. Exit")
     user_choice = input("Enter your choice: ")
-
     match user_choice:
         case "1":
-            encrypted_msg = encrypt_text(keys)
+            encrypt_messages.append(encrypt_text(keys))
+            public_user(keys)
         case "2": 
             if len(digital_signatures) == 0:
                 print("There are no signatures to authenticate.")
@@ -66,21 +65,22 @@ def public_user(keys):
                 for i, (msg, sig) in enumerate(digital_signatures, start=1):
                     print(f"{i}. {msg}")
 
-                try:
-                    signature_select = int(input("Enter your choice: "))
-                    msg, sig = digital_signatures[signature_select - 1]
-                    verified = all(
-                        verify(ord(m), s, keys.e, keys.n)
-                        for m, s in zip(msg, sig)
-                    )
-                    if verified:
-                        print("Signature is valid")
-                    else:
-                        print("Signature is not valid")
-                except (ValueError, IndexError):
-                    print("Invalid selection.")
+                signature_select = int(input("Enter your choice: ")) - 1
+                msg, sig = digital_signatures[signature_select]  # unpack tuple (message, signature)
+
+                # verify each character/signature pair
+                verified = all(
+                    verify(sig[i], ord(m), keys.e, keys.n)
+                    for i, m in enumerate(msg)
+                )
+
+                if verified:
+                    print("Signature is valid")
+                else:
+                    print("Signature is not valid")
+                    public_user(keys)
         case "3":
-            return
+                    return
         case _:
             print("Please enter a valid option.")
 
@@ -97,15 +97,18 @@ def owner_of_keys(keys):
 
         match user_choice:
             case "1":
-                # simulate receipt of an encrypted message
-                encrypted_msg = encrypt_text(keys)  # in practice, this would be sent in
-                decrypt_text(keys, encrypted_msg)
+                print("The following messages are abailable: ")
+                for i, msg in enumerate(encrypt_messages, start=0):
+                    print(f"{(i+1)}. {len(msg)}")
+                select_em = int(input("Enter your choice: "))-1
+                encrypt_message = encrypt_messages[select_em]
+                decrypt_text(keys, encrypt_message)
 
             case "2":
                 msg = input("Enter a message to sign: ")
                 sig = [sign(ord(c), keys.d, keys.n) for c in msg]
                 digital_signatures.append((msg, sig))
-                print("Message signed and stored.")
+                print("Message signed and sent.")
 
             case "3":
                 print("\n--- Current RSA Keys ---")
@@ -118,14 +121,14 @@ def owner_of_keys(keys):
 
             case "4":
                 print("Generating a new set of keys...")
-                new_keys = RSAKeys()   # regenerate with default 512-bit primes
+                new_keys = RSAKeys()
                 keys.p, keys.q = new_keys.p, new_keys.q
                 keys.n, keys.phi = new_keys.n, new_keys.phi
                 keys.e, keys.d = new_keys.e, new_keys.d
-                print("✅ New keys generated successfully!")
+                print("New keys generated successfully!")
 
             case "5":
-                return  # exit owner menu
+                return
 
             case _:
                 print("Please enter a valid option.")
